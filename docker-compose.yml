@@ -1,0 +1,43 @@
+version: "3.7"
+
+services:
+
+  api:
+    build:
+      context: .
+      dockerfile: ./laravel.Dockerfile
+      args:
+        - user=${USER}
+        - uid=${UID}
+    container_name: laravel
+    restart: unless-stopped
+    working_dir: /var/www/laravel
+    ports:
+      - "9000:9000"
+    volumes:
+      - ./laravel:/var/www/laravel
+    networks:
+      - internal
+
+  cron:
+    build:
+      context: .
+      dockerfile: ./cron.Dockerfile
+      args:
+        - user=${USER}
+    container_name: cron
+    restart: unless-stopped
+    volumes:
+      - ./laravel:/var/www/laravel
+      - ./crontab:/etc/crontabs/${USER}
+    networks:
+      - internal
+    depends_on:
+      - api
+
+networks:
+  internal:
+    driver: bridge
+
+volumes:
+  db:
